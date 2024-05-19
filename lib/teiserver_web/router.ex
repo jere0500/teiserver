@@ -617,6 +617,9 @@ defmodule TeiserverWeb.Router do
     get("/tools/falist", ToolController, :falist)
     get("/tools/test_page", ToolController, :test_page)
 
+    # maybe an antipattern, maybe there is a better way to do this kind of requests
+    get("/users/create_form", UserController, :create_form)
+    put("/users/create_post", UserController, :create)
     get("/users/rename_form/:id", UserController, :rename_form)
     put("/users/rename_post/:id", UserController, :rename_post)
     get("/users/reset_password/:id", UserController, :reset_password)

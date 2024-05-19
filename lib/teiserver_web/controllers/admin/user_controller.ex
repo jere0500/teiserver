@@ -208,6 +208,26 @@ defmodule TeiserverWeb.Admin.UserController do
     |> render("new.html")
   end
 
+  @spec create_form(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def create_form(conn, _ ) do
+    
+    # TODO just needes a guard that checks if the function was called by an administrator
+    # redirect(to: ~p"/teiserver/admin/user/create_form.html")
+    conn
+    |> render("create_form.html")
+  end
+
+  @spec create_random(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def create_random(conn, _) do
+    user_params = %{
+      "user" => %{
+        "name" => "test123456",
+        "password" => "pass",
+      }
+    }
+    create(conn, user_params)
+  end
+
   @spec create(Plug.Conn.t(), map) :: Plug.Conn.t()
   def create(conn, %{"user" => user_params}) do
     user_params =

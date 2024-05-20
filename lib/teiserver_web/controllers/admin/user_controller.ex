@@ -23,6 +23,8 @@ defmodule TeiserverWeb.Admin.UserController do
 
   plug(:add_breadcrumb, name: 'Admin', url: '/teiserver/admin')
   plug(:add_breadcrumb, name: 'Users', url: '/teiserver/admin/user')
+  plug(:add_breadcrumb, name: ~c"Admin", url: ~c"/teiserver/admin")
+  plug(:add_breadcrumb, name: ~c"Users", url: ~c"/teiserver/admin/user")
 
   @spec index(Plug.Conn.t(), map) :: Plug.Conn.t()
   def index(conn, params) do
@@ -1142,6 +1144,26 @@ defmodule TeiserverWeb.Admin.UserController do
         conn
         |> put_flash(:success, "User GDPR cleaned")
         |> redirect(to: ~p"/teiserver/admin/user/#{user.id}")
+
+      _ ->
+        conn
+        |> put_flash(:danger, "Unable to access this user")
+        |> redirect(to: ~p"/teiserver/admin/user")
+    end
+  end
+
+
+  @spec delete_user(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  def delete_user(conn, %{"id" => id}) do
+    user = Account.get_user_by_id(id)
+
+    case Teiserver.Account.UserLib.has_access(user, conn) do
+      {true, _} ->
+        Teiserver.manually_delete_user(id)
+
+        conn
+        |> put_flash(:success, "User deleted")
+        |> redirect(to: ~p"/teiserver/admin/user/")
 
       _ ->
         conn

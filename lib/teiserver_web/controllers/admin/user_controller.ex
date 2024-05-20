@@ -218,19 +218,37 @@ defmodule TeiserverWeb.Admin.UserController do
     |> render("create_form.html")
   end
 
+  # Define the blank? function
+  def is_blank?(value) do
+    if is_binary(value) do
+       String.trim(value) == ""
+    end
+  end
+
+  # Define the default value functions
+  def default_value(name, default) do
+    if is_nil(name) or is_blank?(name) do
+      default
+    end
+  end
+
   @spec create_post(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def create_post(conn, %{"name" => name}) do
+  def create_post(conn, params \\ %{}) do
+    (params["name"] || "" == "")
+
+
+
     user_params = %{
-      "name" => name,
-      "password" => "pass",
-      "email" => UUID.uuid1(),
+      "name" => params["name"],
+      "password" => default_value(params["password"], "pass"),
+      "email" => default_value(params["email"], UUID.uuid1()),
+      # "email" => UUID.uuid1(),
       "permissions" => [],
       "icon" => "fa-solid #{Teiserver.Helper.StylingHelper.random_icon()}",
       "colour" => Teiserver.Helper.StylingHelper.random_colour(),
       "trust_score" => 10_000,
       "behaviour_score" => 10_000,
       "data" => %{
-        "name" => name,
         "lobby_client" => "webui",
         "rank" => 1,
         "friends" => [],

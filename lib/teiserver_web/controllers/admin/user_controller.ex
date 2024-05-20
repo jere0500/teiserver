@@ -223,7 +223,7 @@ defmodule TeiserverWeb.Admin.UserController do
       "password" => "pass",
       "email" => UUID.uuid1(),
       "permissions" => [],
-      "icon:" => "fa-solid #{Teiserver.Helper.StylingHelper.random_icon()}",
+      "icon" => "fa-solid #{Teiserver.Helper.StylingHelper.random_icon()}",
       "colour" => Teiserver.Helper.StylingHelper.random_colour(),
       "trust_score" => 10_000,
       "behaviour_score" => 10_000,
@@ -245,23 +245,13 @@ defmodule TeiserverWeb.Admin.UserController do
       {:ok, _user} ->
         conn
         |> put_flash(:info, "User created successfully.")
+        |> redirect(to: ~p"/teiserver/admin/user")
 
         # {:error, %Ecto.Changeset{} = changeset} ->
         #   render(conn, "new.html", changeset: changeset)
     end
-    conn |> redirect(to: ~p"/teiserver/admin/user")
   end
 
-  # @spec create_random(Plug.Conn.t(), map) :: Plug.Conn.t()
-  # def create_random(conn, _) do
-  #   user_params = %{
-  #     "user" => %{
-  #       "name" => "test123456",
-  #       "password" => "pass",
-  #     }
-  #   }
-  #   create(conn, user_params)
-  # end
 
   @spec create(Plug.Conn.t(), map) :: Plug.Conn.t()
   def create(conn, %{"user" => user_params}) do

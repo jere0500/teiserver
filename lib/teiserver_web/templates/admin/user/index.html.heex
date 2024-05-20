@@ -127,6 +127,17 @@ is_moderator = allow?(@conn, "Moderator") %>
                       Edit
                     </a>
                   </td>
+                  <td>
+                    <a
+                      data-confirm="Are you sure?"
+                      href={~p"/admin/users/delete_user/#{user.id}"}
+                      method="put"
+                      class="btn btn-secondary btn-sm"
+                    >
+                      <Fontawesome.icon icon="broom-wide" style="solid" /> &nbsp;
+                      Delete
+                    </a>
+                  </td>
                 <% end %>
               </tr>
             <% end %>

@@ -561,6 +561,7 @@ defmodule TeiserverWeb.Router do
 
     # User stuff
     put("/users/gdpr_clean/:id", UserController, :gdpr_clean)
+    get("/users/delete_user/:id", UserController, :delete_user)
     put("/users/delete_user/:id", UserController, :delete_user)
   end
 

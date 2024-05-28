@@ -1,5 +1,6 @@
 <% bsname = view_colour()
-is_moderator = allow?(@conn, "Moderator") %>
+is_moderator = allow?(@conn, "Moderator")
+is_system = allow?(@conn, "System") %>
 
 <script type="text/javascript" charset="utf-8">
   $(function() {
@@ -127,6 +128,8 @@ is_moderator = allow?(@conn, "Moderator") %>
                       Edit
                     </a>
                   </td>
+                <% end %>
+                <%= if is_system do %>
                   <td>
                     <a
                       data-confirm="Are you sure?"
@@ -134,7 +137,6 @@ is_moderator = allow?(@conn, "Moderator") %>
                       method="put"
                       class="btn btn-secondary btn-sm"
                     >
-                      <Fontawesome.icon icon="broom-wide" style="solid" /> &nbsp;
                       Delete
                     </a>
                   </td>

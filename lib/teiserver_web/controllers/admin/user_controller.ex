@@ -229,6 +229,8 @@ defmodule TeiserverWeb.Admin.UserController do
   def default_value(name, default) do
     if is_nil(name) or is_blank?(name) do
       default
+    else
+      name
     end
   end
 

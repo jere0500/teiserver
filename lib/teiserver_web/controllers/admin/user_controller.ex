@@ -238,7 +238,7 @@ defmodule TeiserverWeb.Admin.UserController do
   def create_post(conn, params \\ %{}) do
     IO.inspect(params)
     email = default_value(params["email"], UUID.uuid1())
-    password = default_value(params["password"], "pass")
+    password = default_value(params["password"], "password")
     Teiserver.CacheUser.register_user(params["name"], email, password)
 
     conn |> redirect(to: ~p"/teiserver/admin/user")

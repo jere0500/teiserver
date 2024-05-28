@@ -24,7 +24,30 @@
 
         <div class="row mt-4">
           <div class="col-sm-12 col-md-8 offset-md-2 col-lg-6 offset-lg-3 col-xl-4 offset-xl-4">
-            <h4>Choose Name</h4>
+            <h4>Create with default values: </h4> 
+            <h5>(random name; random email; password = "password")</h5>
+            <form
+              action={Routes.ts_admin_user_path(@conn, :create_post)}
+              method="post"
+              class=""
+            >
+              <% random_name = "User#{:rand.uniform(899_999_999) + 100_000_000}" %>
+              <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
+              <input type="hidden" name="_method" value="PUT" />
+              <input type="hidden" name="name" value={random_name} />
+
+              <button type="submit" class={"btn btn-#{bsname}2 btn-block"}>
+                Create: <%= random_name %>
+              </button>
+            </form>
+
+
+            <br />
+            <hr />
+            <br />
+
+
+            <h4>Create with chosen values:</h4>
             <form
               action={Routes.ts_admin_user_path(@conn, :create_post)}
               method="post"
@@ -87,25 +110,6 @@
               </div>
             </form>
 
-            <br />
-            <hr />
-            <br />
-
-            <h4>Random name/ email and password: "pass"</h4>
-            <form
-              action={Routes.ts_admin_user_path(@conn, :create_post)}
-              method="post"
-              class=""
-            >
-              <% random_name = "User#{:rand.uniform(899_999_999) + 100_000_000}" %>
-              <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
-              <input type="hidden" name="_method" value="PUT" />
-              <input type="hidden" name="name" value={random_name} />
-
-              <button type="submit" class={"btn btn-#{bsname}2 btn-block"}>
-                Generate with <%= random_name %>
-              </button>
-            </form>
           </div>
         </div>
       </div>

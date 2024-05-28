@@ -21,8 +21,8 @@ defmodule TeiserverWeb.Admin.UserController do
     user: {Teiserver.Account.AuthLib, :current_user}
   )
 
-  plug(:add_breadcrumb, name: 'Admin', url: '/teiserver/admin')
-  plug(:add_breadcrumb, name: 'Users', url: '/teiserver/admin/user')
+  plug(:add_breadcrumb, name: ~c"Admin", url: ~c"/teiserver/admin")
+  plug(:add_breadcrumb, name: ~c"Users", url: ~c"/teiserver/admin/user")
   plug(:add_breadcrumb, name: ~c"Admin", url: ~c"/teiserver/admin")
   plug(:add_breadcrumb, name: ~c"Users", url: ~c"/teiserver/admin/user")
 
@@ -221,7 +221,7 @@ defmodule TeiserverWeb.Admin.UserController do
   # Define the blank? function
   def is_blank?(value) do
     if is_binary(value) do
-       String.trim(value) == ""
+      String.trim(value) == ""
     end
   end
 
@@ -236,44 +236,13 @@ defmodule TeiserverWeb.Admin.UserController do
 
   @spec create_post(Plug.Conn.t(), map) :: Plug.Conn.t()
   def create_post(conn, params \\ %{}) do
-    (params["name"] || "" == "")
+    IO.inspect(params)
+    email = default_value(params["email"], UUID.uuid1())
+    password = default_value(params["password"], "pass")
+    Teiserver.CacheUser.register_user(params["name"], email, password)
 
-
-
-    user_params = %{
-      "name" => params["name"],
-      "password" => default_value(params["password"], "pass"),
-      "email" => default_value(params["email"], UUID.uuid1()),
-      # "email" => UUID.uuid1(),
-      "permissions" => [],
-      "icon" => "fa-solid #{Teiserver.Helper.StylingHelper.random_icon()}",
-      "colour" => Teiserver.Helper.StylingHelper.random_colour(),
-      "trust_score" => 10_000,
-      "behaviour_score" => 10_000,
-      "data" => %{
-        "lobby_client" => "webui",
-        "rank" => 1,
-        "friends" => [],
-        "friend_requests" => [],
-        "ignored" => [],
-        "roles" => [],
-        "bot" => "false",
-        "moderator" => "false",
-        "password_hash" => "X03MO1qnZdYdgyfeuILPmQ=="
-      }
-    }
-
-    case Account.create_user(user_params) do
-      {:ok, _user} ->
-        conn
-        |> put_flash(:info, "User created successfully.")
-        |> redirect(to: ~p"/teiserver/admin/user")
-
-        # {:error, %Ecto.Changeset{} = changeset} ->
-        #   render(conn, "new.html", changeset: changeset)
-    end
+    conn |> redirect(to: ~p"/teiserver/admin/user")
   end
-
 
   @spec create(Plug.Conn.t(), map) :: Plug.Conn.t()
   def create(conn, %{"user" => user_params}) do
@@ -1171,7 +1140,6 @@ defmodule TeiserverWeb.Admin.UserController do
         |> redirect(to: ~p"/teiserver/admin/user")
     end
   end
-
 
   @spec delete_user(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete_user(conn, %{"id" => id}) do

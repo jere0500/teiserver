@@ -21,8 +21,8 @@ defmodule TeiserverWeb.Admin.UserController do
     user: {Teiserver.Account.AuthLib, :current_user}
   )
 
-  plug(:add_breadcrumb, name: ~c"Admin", url: ~c"/teiserver/admin")
-  plug(:add_breadcrumb, name: ~c"Users", url: ~c"/teiserver/admin/user")
+  plug(:add_breadcrumb, name: 'Admin', url: '/teiserver/admin')
+  plug(:add_breadcrumb, name: 'Users', url: '/teiserver/admin/user')
   plug(:add_breadcrumb, name: ~c"Admin", url: ~c"/teiserver/admin")
   plug(:add_breadcrumb, name: ~c"Users", url: ~c"/teiserver/admin/user")
 
@@ -214,35 +214,55 @@ defmodule TeiserverWeb.Admin.UserController do
   def create_form(conn, _) do
     # TODO just needes a guard that checks if the function was called by an administrator
     # redirect(to: ~p"/teiserver/admin/user/create_form.html")
+    # can maybe get skipped
     conn
     |> render("create_form.html")
   end
 
-  # Define the blank? function
-  def is_blank?(value) do
-    if is_binary(value) do
-      String.trim(value) == ""
-    end
-  end
-
-  # Define the default value functions
-  def default_value(name, default) do
-    if is_nil(name) or is_blank?(name) do
-      default
-    else
-      name
-    end
-  end
-
   @spec create_post(Plug.Conn.t(), map) :: Plug.Conn.t()
   def create_post(conn, params \\ %{}) do
-    IO.inspect(params)
-    email = default_value(params["email"], UUID.uuid1())
-    password = default_value(params["password"], "password")
-    Teiserver.CacheUser.register_user(params["name"], email, password)
+    (params["name"] || "" == "")
 
-    conn |> redirect(to: ~p"/teiserver/admin/user")
+    passwordfn = fn -> if is_nil(params["password"]) or String.trim(params["password"]) == "" do "password" else params["password"] end end
+    emailfn = fn -> if is_nil(params["email"]) or String.trim(params["email"]) == "" do UUID.uuid1() else params["email"] end end
+
+
+    user_params = %{
+      "name" => params["name"],
+      "password" => passwordfn.(),
+      "email" => emailfn.(),
+      "permissions" => [],
+      "icon" => "fa-solid #{Teiserver.Helper.StylingHelper.random_icon()}",
+      "colour" => Teiserver.Helper.StylingHelper.random_colour(),
+      "trust_score" => 10_000,
+      "behaviour_score" => 10_000,
+      "data" => %{
+        "lobby_client" => "webui",
+        "rank" => 1,
+        "friends" => [],
+        "friend_requests" => [],
+        "ignored" => [],
+        "roles" => [],
+        "bot" => "false",
+        "moderator" => "false",
+        "password_hash" => 
+            Teiserver.CacheUser.encrypt_password(
+              Teiserver.CacheUser.spring_md5_password(passwordfn.())
+            )
+      }
+    }
+
+    case Account.create_user(user_params) do
+      {:ok, _user} ->
+        conn
+        |> put_flash(:info, "User created successfully.")
+        |> redirect(to: ~p"/teiserver/admin/user")
+
+        # {:error, %Ecto.Changeset{} = changeset} ->
+        #   render(conn, "new.html", changeset: changeset)
+    end
   end
+
 
   @spec create(Plug.Conn.t(), map) :: Plug.Conn.t()
   def create(conn, %{"user" => user_params}) do
@@ -1140,6 +1160,7 @@ defmodule TeiserverWeb.Admin.UserController do
         |> redirect(to: ~p"/teiserver/admin/user")
     end
   end
+
 
   @spec delete_user(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete_user(conn, %{"id" => id}) do

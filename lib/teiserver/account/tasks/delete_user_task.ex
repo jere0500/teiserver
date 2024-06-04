@@ -36,6 +36,8 @@ defmodule Teiserver.Admin.DeleteUserTask do
       "DELETE FROM telemetry_complex_server_event_types WHERE user_id = ANY($1)",
       "DELETE FROM telemetry_simple_server_event_types WHERE user_id = ANY($1)",
       "DELETE FROM telemetry_user_properties WHERE user_id = ANY($1)",
+      "DELETE FROM telemetry_simple_server_events WHERE user_id = ANY($1)",
+      "DELETE FROM telemetry_simple_lobby_events WHERE user_id = ANY($1)",
 
       # User table extensions/stats
       "DELETE FROM teiserver_account_user_stats WHERE user_id = ANY($1)",
@@ -58,8 +60,9 @@ defmodule Teiserver.Admin.DeleteUserTask do
       "DELETE FROM teiserver_game_rating_logs WHERE user_id = ANY($1)",
 
       # Moderation
-      "DELETE FROM moderation_reports WHERE reporter_id = ANY($1) OR target_id = ANY($1) OR responder_id = ANY($1)",
-      "DELETE FROM moderation_actions WHERE target_id = ANY($1)"
+      "DELETE FROM moderation_reports WHERE reporter_id = ANY($1)",
+      "DELETE FROM moderation_reports WHERE target_id = ANY($1)",
+      "DELETE FROM moderation_actions WHERE responder_id = ANY($1)"
     ]
     |> Enum.each(fn query ->
       Ecto.Adapters.SQL.query(Repo, query, [int_id_list])

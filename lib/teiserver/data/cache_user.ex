@@ -2,7 +2,6 @@ defmodule Teiserver.CacheUser do
   @moduledoc """
   Users here are a combination of Teiserver.Account.User and the data within. They are merged like this into a map as their expected use case is very different.
   """
-
   alias Teiserver.{Account, Config, Client, Coordinator, Telemetry, Chat, EmailHelper}
   alias Teiserver.Account.{LoginThrottleServer, UserCacheLib, Guardian}
   alias Teiserver.Chat.WordLib
@@ -290,21 +289,15 @@ defmodule Teiserver.CacheUser do
             :ok
 
           true ->
-            case Application.fetch_env(:teiserver, Teiserver.Mailer) do
-              {:ok, _} ->
-                case EmailHelper.new_user(user) do
-                  {:error, error} ->
-                    Logger.error("Error sending new user email - #{user.email} - #{error}")
+            case EmailHelper.new_user(user) do
+              {:error, error} ->
+                Logger.error("Error sending new user email - #{user.email} - #{error}")
 
-                  :no_verify ->
-                    verify_user(get_user_by_id(user.id))
+              :no_verify ->
+                verify_user(get_user_by_id(user.id))
 
-                  {:ok, _} ->
-                    :ok
-                    # Logger.error("Email sent, response of #{Kernel.inspect response}")
-                end
-              :error ->
-                Logger.warn("Skipped sending mail, mailer is not configured")
+              {:ok, _, _} ->
+                :ok
             end
         end
 

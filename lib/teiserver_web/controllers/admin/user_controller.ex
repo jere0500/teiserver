@@ -218,32 +218,42 @@ defmodule TeiserverWeb.Admin.UserController do
 
   @spec create_post(Plug.Conn.t(), map) :: Plug.Conn.t()
   def create_post(conn, params \\ %{}) do
-    # params["name"] || "" == ""
+    if is_nil(params["name"]) or String.trim(params["name"]) == "" do
+      conn
+      |> put_flash(:danger, "Invalid user name")
+      |> redirect(to: ~p"/teiserver/admin/user")
+    end
 
-    password =
-      if is_nil(params["password"]) or String.trim(params["password"]) == "" do
-        "password"
-      else
-        params["password"]
+    if allow?(conn, "Server") do
+      password =
+        if is_nil(params["password"]) or String.trim(params["password"]) == "" do
+          "password"
+        else
+          params["password"]
+        end
+
+      email =
+        if is_nil(params["email"]) or String.trim(params["email"]) == "" do
+          UUID.uuid1()
+        else
+          params["email"]
+        end
+
+      case Teiserver.CacheUser.register_user(params["name"], email, password) do
+        :success ->
+          conn
+          |> put_flash(:info, "User created successfully.")
+          |> redirect(to: ~p"/teiserver/admin/user")
+
+        {:failure, str} ->
+          conn
+          |> put_flash(:error, "Problem creating user: " <> str)
+          |> redirect(to: ~p"/teiserver/admin/user")
       end
-
-    email =
-      if is_nil(params["email"]) or String.trim(params["email"]) == "" do
-        UUID.uuid1()
-      else
-        params["email"]
-      end
-
-    case Teiserver.CacheUser.register_user(params["name"], email, password) do
-      :success ->
-        conn
-        |> put_flash(:info, "User created successfully.")
-        |> redirect(to: ~p"/teiserver/admin/user")
-
-      {:failure, str} ->
-        conn
-        |> put_flash(:error, "Problem creating user: " <> str)
-        |> redirect(to: ~p"/teiserver/admin/user")
+    else
+      conn
+      |> put_flash(:danger, "No access.")
+      |> redirect(to: ~p"/teiserver/admin/user")
     end
   end
 

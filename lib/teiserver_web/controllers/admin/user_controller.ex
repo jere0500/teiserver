@@ -21,8 +21,8 @@ defmodule TeiserverWeb.Admin.UserController do
     user: {Teiserver.Account.AuthLib, :current_user}
   )
 
-  plug(:add_breadcrumb, name: ~c"Admin", url: ~c"/teiserver/admin")
-  plug(:add_breadcrumb, name: ~c"Users", url: ~c"/teiserver/admin/user")
+  plug(:add_breadcrumb, name: "Admin", url: "/teiserver/admin")
+  plug(:add_breadcrumb, name: "Users", url: "/teiserver/admin/user")
 
   @spec index(Plug.Conn.t(), map) :: Plug.Conn.t()
   def index(conn, params) do
@@ -218,53 +218,31 @@ defmodule TeiserverWeb.Admin.UserController do
 
   @spec create_post(Plug.Conn.t(), map) :: Plug.Conn.t()
   def create_post(conn, params \\ %{}) do
-    params["name"] || "" == ""
+    # params["name"] || "" == ""
 
-    passwordfn = fn ->
+    password =
       if is_nil(params["password"]) or String.trim(params["password"]) == "" do
         "password"
       else
         params["password"]
       end
-    end
 
-    emailfn = fn ->
+    email =
       if is_nil(params["email"]) or String.trim(params["email"]) == "" do
         UUID.uuid1()
       else
         params["email"]
       end
-    end
 
-    user_params = %{
-      "name" => params["name"],
-      "password" => passwordfn.(),
-      "email" => emailfn.(),
-      "permissions" => [],
-      "icon" => "fa-solid #{Teiserver.Helper.StylingHelper.random_icon()}",
-      "colour" => Teiserver.Helper.StylingHelper.random_colour(),
-      "trust_score" => 10_000,
-      "behaviour_score" => 10_000,
-      "data" => %{
-        "lobby_client" => "webui",
-        "rank" => 1,
-        "friends" => [],
-        "friend_requests" => [],
-        "ignored" => [],
-        "roles" => [],
-        "bot" => "false",
-        "moderator" => "false",
-        "password_hash" =>
-          Teiserver.CacheUser.encrypt_password(
-            Teiserver.CacheUser.spring_md5_password(passwordfn.())
-          )
-      }
-    }
-
-    case Account.create_user(user_params) do
-      {:ok, _user} ->
+    case Teiserver.CacheUser.register_user(params["name"], email, password) do
+      :success ->
         conn
         |> put_flash(:info, "User created successfully.")
+        |> redirect(to: ~p"/teiserver/admin/user")
+
+      {:failure, str} ->
+        conn
+        |> put_flash(:error, "Problem creating user: " <> str)
         |> redirect(to: ~p"/teiserver/admin/user")
     end
   end
@@ -1172,11 +1150,12 @@ defmodule TeiserverWeb.Admin.UserController do
 
     case Teiserver.Account.UserLib.has_access(user, conn) do
       {true, _} ->
-        Teiserver.manually_delete_user(id)
-
-        conn
-        |> put_flash(:success, "User deleted")
-        |> redirect(to: ~p"/teiserver/admin/user/")
+        case Teiserver.Admin.DeleteUserTask.delete_users([id]) do
+          :ok ->
+            conn
+            |> put_flash(:success, "User deleted")
+            |> redirect(to: ~p"/teiserver/admin/user/")
+        end
 
       _ ->
         conn

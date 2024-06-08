@@ -212,8 +212,14 @@ defmodule TeiserverWeb.Admin.UserController do
 
   @spec create_form(Plug.Conn.t(), map) :: Plug.Conn.t()
   def create_form(conn, _) do
-    conn
-    |> render("create_form.html")
+    if allow?(conn, "Server") do
+      conn
+      |> render("create_form.html")
+    else
+      conn
+      |> put_flash(:info, "No permission")
+      |> redirect(to: ~p"/teiserver/admin/user")
+    end
   end
 
   @spec create_post(Plug.Conn.t(), map) :: Plug.Conn.t()

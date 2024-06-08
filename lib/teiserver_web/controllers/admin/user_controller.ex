@@ -1179,4 +1179,11 @@ defmodule TeiserverWeb.Admin.UserController do
         |> redirect(to: ~p"/teiserver/admin/user")
     end
   end
+
+  def delete_user(conn, %{}) do
+    # catch case, when no id is provided
+    conn
+    |> put_flash(:danger, "No user_id provided")
+    |> redirect(to: ~p"/teiserver/admin/user")
+  end
 end
